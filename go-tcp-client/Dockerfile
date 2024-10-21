@@ -11,7 +11,7 @@ COPY . ./
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/app
 
-EXPOSE 3000
+EXPOSE 3080
 
 # Run
 CMD ["/usr/local/bin/app"]
