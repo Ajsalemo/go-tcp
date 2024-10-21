@@ -17,15 +17,59 @@ func init() {
 	zap.ReplaceGlobals(zap.Must(zap.NewProduction()))
 }
 
-func handleRequest(conn net.Conn) {
+func handleRequest(conn net.Conn, server string) {
 	// close conn
 	defer conn.Close()
 	// write data to response
 	time := time.Now().Format(time.ANSIC)
-	res := "Recieved connection at: " + time
-	zap.L().Info("TCP server [1]: Recieved connection at: " + time)
+	res := "TCP server " + server + ": Recieved connection at: " + time
+	zap.L().Info("TCP server " + server + ": Recieved connection at: " + time)
 	conn.Write([]byte(res))
 
+}
+
+func tcpServerOne() {
+	HOST := "0.0.0.0"
+	PORT := "8080"
+	TYPE := "tcp"
+	SERVER := "[1]"
+
+	zap.L().Info("TCP server " + SERVER + " is listening on port " + PORT)
+	listen, err := net.Listen(TYPE, HOST+":"+PORT)
+	if err != nil {
+		zap.L().Fatal(err.Error())
+	}
+	// close listener
+	defer listen.Close()
+	for {
+		conn, err := listen.Accept()
+		if err != nil {
+			zap.L().Fatal(err.Error())
+		}
+		go handleRequest(conn, SERVER)
+	}
+}
+
+func tcpServerTwo() {
+	HOST := "0.0.0.0"
+	PORT := "8090"
+	TYPE := "tcp"
+	SERVER := "[2]"
+
+	zap.L().Info("TCP server " + SERVER + " is listening on port " + PORT)
+	listen, err := net.Listen(TYPE, HOST+":"+PORT)
+	if err != nil {
+		zap.L().Fatal(err.Error())
+	}
+	// close listener
+	defer listen.Close()
+	for {
+		conn, err := listen.Accept()
+		if err != nil {
+			zap.L().Fatal(err.Error())
+		}
+		go handleRequest(conn, SERVER)
+	}
 }
 
 func main() {
@@ -55,28 +99,9 @@ func main() {
 			app.Shutdown()
 		}
 	}()
-	go func() {
-		const (
-			HOST = "0.0.0.0"
-			PORT = "8080"
-			TYPE = "tcp"
-		)
-
-		zap.L().Info("TCP server [1] is listening on port 8080")
-		listen, err := net.Listen(TYPE, HOST+":"+PORT)
-		if err != nil {
-			zap.L().Fatal(err.Error())
-		}
-		// close listener
-		defer listen.Close()
-		for {
-			conn, err := listen.Accept()
-			if err != nil {
-				zap.L().Fatal(err.Error())
-			}
-			go handleRequest(conn)
-		}
-	}()
+	// Start multiple tcp servers
+	go tcpServerOne()
+	go tcpServerTwo()
 
 	zap.L().Info("Fiber (HTTP) server is running on port 3000")
 	fiberErr := app.Listen(":3000")

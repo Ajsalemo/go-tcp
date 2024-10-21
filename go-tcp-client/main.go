@@ -16,7 +16,7 @@ func main() {
 	app.Get("/", controllers.IndexController)
 	app.Get("/api/tcp/:host/:port", controllers.ExecuteTcpConnectionController)
 	
-	zap.L().Info("Fiber (HTTP) server is running on port 3000")
+	zap.L().Info("Fiber (HTTP) server is running on port 3080")
 	fiberErr := app.Listen(":3080")
 
 	if fiberErr != nil {
